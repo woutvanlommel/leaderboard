@@ -1,12 +1,11 @@
 <?php
 
-
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('pages.home');
+Route::middleware('auth')->group(function () {
+    Route::view('/', 'pages.home')->name('home');
+
+    Route::view('profile', 'profile')->name('profile');
 });
 
-Route::get('/stijn', function () {
-    return view('pages.stijn');
-})->name('stijn');
+require __DIR__.'/auth.php';

@@ -1,5 +1,5 @@
 <x-layouts.app>
-<h1>Navigeer naar stijn.</h1>
-    <a href="{{ route('stijn')}}">stijn</a>
+    <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        <h1 class="text-2xl font-semibold">{{ __('Welcome, :name!', ['name' => auth()->user()->name]) }}</h1>
+    </div>
 </x-layouts.app>
-    
