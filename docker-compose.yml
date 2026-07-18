@@ -38,6 +38,15 @@ services:
     networks:
       - leaderboard
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: leaderboard_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    networks:
+      - leaderboard
+
   node:
     image: node:20-alpine
     container_name: leaderboard_node

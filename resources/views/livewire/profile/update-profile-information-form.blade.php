@@ -16,18 +16,12 @@ new class extends Component
     public string $email = '';
     public $photo = null;
 
-    /**
-     * Mount the component.
-     */
     public function mount(): void
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
     }
 
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
     public function updateProfileInformation(): void
     {
         $user = Auth::user();
@@ -59,9 +53,6 @@ new class extends Component
         $this->dispatch('profile-updated', name: $user->name);
     }
 
-    /**
-     * Send an email verification notification to the current user.
-     */
     public function sendVerification(): void
     {
         $user = Auth::user();
@@ -79,70 +70,99 @@ new class extends Component
 }; ?>
 
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
+    <h2 class="text-base font-semibold text-gray-900">Profielinformatie</h2>
+    <p class="mt-1 text-sm text-gray-500">Pas je naam, e-mailadres en profielfoto aan.</p>
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+    <form wire:submit="updateProfileInformation" class="mt-6 space-y-5">
 
-    <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
+        {{-- Profielfoto --}}
         <div>
-            <x-input-label for="photo" :value="__('Profile photo')" />
-
-            <div class="mt-2 flex items-center gap-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Profielfoto</label>
+            <div class="flex items-center gap-4">
                 @if ($photo)
-                    <img src="{{ $photo->temporaryUrl() }}" class="w-16 h-16 rounded-full object-cover">
+                    <img src="{{ $photo->temporaryUrl() }}" class="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200">
                 @elseif (auth()->user()->hasMedia('profile_photo'))
-                    <img src="{{ auth()->user()->getFirstMediaUrl('profile_photo') }}" class="w-16 h-16 rounded-full object-cover">
+                    <img src="{{ auth()->user()->getFirstMediaUrl('profile_photo') }}" class="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200">
+                @else
+                    <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
                 @endif
 
-                <input type="file" wire:model="photo" id="photo" accept="image/jpeg,image/png" class="block text-sm text-gray-600">
+                <label for="photo" class="cursor-pointer rounded-lg border border-gray-300 px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                    Foto kiezen
+                    <input type="file" wire:model="photo" id="photo" accept="image/jpeg,image/png" class="sr-only">
+                </label>
             </div>
-
-            <p class="mt-1 text-xs text-gray-500">{{ __('JPG or PNG, max 5MB.') }}</p>
-            <x-input-error class="mt-2" :messages="$errors->get('photo')" />
+            <p class="mt-1.5 text-xs text-gray-400">JPG of PNG, max 5MB</p>
+            <x-input-error class="mt-1.5" :messages="$errors->get('photo')" />
         </div>
 
+        {{-- Naam --}}
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">Naam</label>
+            <input
+                wire:model="name"
+                id="name"
+                name="name"
+                type="text"
+                required
+                autofocus
+                autocomplete="name"
+                class="block w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-xs transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <x-input-error class="mt-1.5" :messages="$errors->get('name')" />
         </div>
 
+        {{-- E-mail --}}
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">E-mailadres</label>
+            <input
+                wire:model="email"
+                id="email"
+                name="email"
+                type="email"
+                required
+                autocomplete="username"
+                class="block w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-xs transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <x-input-error class="mt-1.5" :messages="$errors->get('email')" />
 
             @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
+                <p class="mt-2 text-sm text-gray-600">
+                    Je e-mailadres is niet geverifieerd.
+                    <button wire:click.prevent="sendVerification" class="text-primary underline hover:text-primary-hover transition">
+                        Stuur verificatiemail opnieuw.
+                    </button>
+                </p>
 
-                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
+                @if (session('status') === 'verification-link-sent')
+                    <p class="mt-2 text-sm text-green-600 font-medium">Verificatiemail verstuurd.</p>
+                @endif
             @endif
         </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+        <div class="flex items-center gap-4 pt-1">
+            <button
+                type="submit"
+                class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-primary-hover active:bg-primary-active focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition"
+            >
+                <span wire:loading.remove wire:target="updateProfileInformation">Opslaan</span>
+                <span wire:loading wire:target="updateProfileInformation" class="flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Bezig...
+                </span>
+            </button>
 
-            <x-action-message class="me-3" on="profile-updated">
-                {{ __('Saved.') }}
+            <x-action-message class="text-sm text-green-600 font-medium" on="profile-updated">
+                Opgeslagen.
             </x-action-message>
         </div>
+
     </form>
 </section>
